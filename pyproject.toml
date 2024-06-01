@@ -2,7 +2,7 @@
 name = "undo-cli"
 version = "0.1.0"
 description = "A CLI tool for undoing actions"
-authors = ["yunkiwon <kyyunkiwon@gmail.com>"]
+authors = ["yunkiwon <kyyunkiwon@gmail.com>", "j-csc <jasonchen75@gmail.com>"]
 readme = "README.md"
 packages = [{ include = "undo_cli" }]
 
