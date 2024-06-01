@@ -1,14 +1,17 @@
 [tool.poetry]
 name = "undo-cli"
 version = "0.1.0"
-description = ""
+description = "A CLI tool for undoing actions"
 authors = ["yunkiwon <kyyunkiwon@gmail.com>"]
 readme = "README.md"
+packages = [{ include = "undo_cli" }]
 
 [tool.poetry.dependencies]
 python = "^3.12"
 click = "^8.1.7"
 
+[tool.poetry.scripts]
+oopsies = "undo_cli.oopsies:cli"
 
 [build-system]
 requires = ["poetry-core"]
