@@ -16,7 +16,7 @@ poetry install
 ## 3. Build Package and Install
 
 After building the package, you can install it globally using pip:
-pip install dist/undo_cli-0.1.0-py3-none-any.whl
+pipx install dist/undo_cli-0.1.0-py3-none-any.whl
 
 ## 4. Run 
 Running `oopsies` in the cli should now yield: 
