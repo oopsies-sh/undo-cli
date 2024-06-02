@@ -9,6 +9,7 @@ packages = [{ include = "undo_cli" }]
 [tool.poetry.dependencies]
 python = "^3.12"
 click = "^8.1.7"
+rich = "^13.7.1"
 
 [tool.poetry.scripts]
 oopsies = "undo_cli.main:cli"
