@@ -1,15 +1,17 @@
 import click
-import os 
-import json 
+import os
+import json
 from rich.console import Console
-from .git import Git, GitTree
-from .key_settings import handle_openai_key, prompt_for_key, remove_openai_key
+from undo_cli.git_sim import GitSim, GitTree
+from undo_cli.key_settings import handle_openai_key, prompt_for_key, remove_openai_key
+
 
 def get_shared_objects():
     console = Console()
-    git = Git()
+    git = GitSim()
     git_tree = GitTree(git, console)
     return console, git, git_tree
+
 
 @click.group()
 @click.pass_context
@@ -33,8 +35,9 @@ def cli(ctx):
         ctx.obj["openai_key"] = openai_key
         ctx.obj["model"] = "gpt-4"  # Set default model
 
+
 @click.command()
-@click.option('--key', prompt='Enter your key', help='Key to set')
+@click.option("--key", prompt="Enter your key", help="Key to set")
 @click.pass_context
 def setkey(ctx, key):
     console = ctx.obj["console"]
@@ -43,16 +46,19 @@ def setkey(ctx, key):
         json.dump({"OPENAI_KEY": key}, f, indent=2)
     console.print(f"Key has been set to: {key}")
 
+
 @click.command()
 @click.pass_context
 def removekey(ctx):
     remove_openai_key()
+
 
 @click.command()
 @click.pass_context
 def show(ctx):
     git_tree = ctx.obj["git_tree"]
     git_tree.display_log()
+
 
 cli.add_command(show)
 cli.add_command(setkey)

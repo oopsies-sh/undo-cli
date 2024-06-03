@@ -1,4 +1,5 @@
-from .utils import run_cmd
+import tempfile
+from undo_cli.utils import run_cmd
 from rich.console import Console
 from rich.syntax import Syntax
 
@@ -8,8 +9,8 @@ Supported Git Commands: https://git-scm.com/docs
 """
 
 
-# Internal git state machine to do simulations for Large Language Models to do retry Mechanism
-class Git:
+# Internal git state machine using a temp dir to do simulations for Large Language Models to do retries
+class GitSim:
     def __init__(self):
         self._log = None
 
