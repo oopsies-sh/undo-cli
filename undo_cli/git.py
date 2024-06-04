@@ -42,6 +42,8 @@ class GitTree:
         else:
             self.console.print("No log available")
 
+    def return_log(self): 
+        return self.git.log
 
 def main():
     console = Console()

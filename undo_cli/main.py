@@ -4,6 +4,7 @@ import json
 from rich.console import Console
 from .git import Git, GitTree
 from .key_settings import handle_openai_key, prompt_for_key, remove_openai_key
+from .prompt import prompt_command
 
 def get_shared_objects():
     console = Console()
@@ -54,9 +55,18 @@ def show(ctx):
     git_tree = ctx.obj["git_tree"]
     git_tree.display_log()
 
+@cli.command()
+@click.pass_context
+def prompt(ctx):
+    prompt_command(ctx)  # Assuming your prompt_command is designed to handle Click context.
+
+
+
+
 cli.add_command(show)
 cli.add_command(setkey)
 cli.add_command(removekey)
+cli.add_command(prompt)
 
 if __name__ == "__main__":
     cli(obj={})
