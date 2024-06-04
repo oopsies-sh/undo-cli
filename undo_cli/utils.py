@@ -8,6 +8,19 @@ commands = {
     "list_remotes": ["git", "remote", "-v"],
     "log": ["git", "log", "--oneline", "--all"],
     "is_git_repo": ["git", "rev-parse", "--is-inside-work-tree"],
+    "clone": lambda repo_url, temp_dir: ["git", "clone", repo_url, temp_dir],
+    "current_branch": ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+    "staged_files": ["git", "diff", "--cached", "--name-only"],
+    "unstaged_files": ["git", "diff"],
+    "local_modifications": ["git", "diff", "HEAD"],
+    "untracked_files": ["git", "ls-files", "--others", "--exclude-standard"],
+    "checkout": lambda branch: ["git", "checkout", branch],
+    "remote_branch": [
+        "git",
+        "for-each-ref",
+        "--format='%(upstream:short)'",
+        "$(git symbolic-ref -q HEAD)",
+    ],
 }
 
 
@@ -18,6 +31,35 @@ def run_cmd(args):
         return stdout, stderr
     except Exception as e:
         return None, str(e)
+
+
+def gather_git_state():
+    state = {
+        "current_branch": None,
+        "local_modifications": None,
+        "staged_files": None,
+        "untracked_files": None,
+        "remote_branch": None,
+        "unstaged_files": None,
+        "errors": {},
+    }
+    current_branch, current_branch_errors = run_cmd(commands["current_branch"])
+    staged_files, staged_files_errors = run_cmd(commands["staged_files"])
+    local_modifications, local_modifications_errors = run_cmd(
+        commands["local_modifications"]
+    )
+    untracked_files, untracked_files_errors = run_cmd(commands["untracked_files"])
+    remote_branch, remote_branch_errors = run_cmd(commands["remote_branch"])
+    unstaged_files, unstaged_files_errors = run_cmd(commands["unstaged_files"])
+
+    state["current_branch"] = current_branch
+    state["staged_files"] = staged_files
+    state["local_modifications"] = local_modifications
+    state["untracked_files"] = untracked_files
+    state["remote_branch"] = remote_branch
+    state["unstaged_files"] = unstaged_files
+
+    return state
 
 
 def git_repo_required(func):

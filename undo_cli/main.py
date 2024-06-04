@@ -2,25 +2,26 @@ import click
 import os
 import json
 from rich.console import Console
-from undo_cli.git_sim import GitSim, GitTree
+from undo_cli.git_sim import GitSim
+from undo_cli.ui import Ui
 from undo_cli.key_settings import handle_openai_key, prompt_for_key, remove_openai_key
 
 
 def get_shared_objects():
     console = Console()
     git = GitSim()
-    git_tree = GitTree(git, console)
-    return console, git, git_tree
+    ui = Ui(git, console)
+    return console, git, ui
 
 
 @click.group()
 @click.pass_context
 def cli(ctx):
     ctx.ensure_object(dict)
-    console, git, git_tree = get_shared_objects()
+    console, git, ui = get_shared_objects()
     ctx.obj["console"] = console
     ctx.obj["git"] = git
-    ctx.obj["git_tree"] = git_tree
+    ctx.obj["ui"] = ui
 
     if ctx.invoked_subcommand not in ["setkey", "removekey"]:
         # Load or prompt for the OpenAI key if not setting or removing the key
@@ -57,8 +58,8 @@ def removekey(ctx):
 @click.pass_context
 def show(ctx):
     try:
-        git_tree = ctx.obj["git_tree"]
-        git_tree.display_log()
+        ui = ctx.obj["ui"]
+        ui.display_log()
     except Exception as e:
         ctx.obj["console"].print(f"Error: {e}")
 

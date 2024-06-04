@@ -1,9 +1,8 @@
+import os
 import tempfile
 import subprocess
-from undo_cli.utils import run_cmd, commands, git_repo_required
-from rich.console import Console
-from rich.syntax import Syntax
-
+from undo_cli.utils import run_cmd, commands, git_repo_required, gather_git_state
+import shutil
 
 """
 Supported Git Commands: https://git-scm.com/docs
@@ -28,8 +27,7 @@ class GitSim:
 
     @git_repo_required
     def _fetch_log(self):
-        cmd = ["git", "log", "--oneline", "--all"]
-        stdout, stderr = run_cmd(cmd)
+        stdout, stderr = run_cmd(commands["log"])
         if stdout:
             self._log = stdout.decode("utf-8")
         else:
@@ -37,35 +35,59 @@ class GitSim:
 
     @git_repo_required
     def sim(self):
+        git_state = gather_git_state()
+
+        if git_state["errors"]:
+            raise Exception(f"Error fetching git state: {git_state['errors']}")
+
         try:
-            # temp_dir = tempfile.mkdtemp()
-            print(subprocess.run(commands["repository_path"], check=True))
+            orig_repo_dir = os.getcwd()
+            print(orig_repo_dir)
+            with tempfile.TemporaryDirectory() as temp_dir:
+                print(f"Temporary directory created at: {temp_dir}")
+                repo_url, repo_url_error = run_cmd(commands["repository_url"])
+                if repo_url_error:
+                    raise Exception(f"Error fetching repo url: {repo_url_error}")
+
+                # Clone the repo to the temp dir
+                clone, _ = run_cmd(commands["clone"](repo_url, temp_dir))
+
+                # Replicate user actions i.e. what branch they are on and what they are doing
+                repo_dir = os.path.join(temp_dir, os.listdir(temp_dir)[0])
+                os.chdir(repo_dir)
+
+                run_cmd(commands["checkout"](git_state["current_branch"]))
+
+                if git_state["staged_files"]:
+                    staged_files = git_state["staged_files"].split("\n")
+                    for file in staged_files:
+                        shutil.copy2(
+                            os.path.join(orig_repo_dir, file),
+                            os.path.join(repo_dir, file),
+                        )
+                        run_cmd(["git", "add"] + staged_files)
+
+                if git_state["unstaged_files"]:
+                    with open(
+                        os.path.join(temp_dir, "unstaged.patch"), "w"
+                    ) as patch_file:
+                        patch_file.write(git_state["unstaged_files"])
+                    run_cmd(["git", "apply", "unstaged.patch"])
+
+                if git_state["untracked_files"]:
+                    untracked_files = git_state["untracked_files"].split("\n")
+                    for file in untracked_files:
+                        src_path = os.path.join(orig_repo_dir, file)
+                        dst_path = os.path.join(repo_dir, file)
+                        os.makedirs(os.path.dirname(dst_path), exist_ok=True)
+                        shutil.copy2(src_path, dst_path)
+
+            # Verify the temporary directory is deleted
 
         except Exception as e:
-            return f"Error creating temp dir: {e}"
-
-
-# UI for Git Class
-class GitTree:
-    def __init__(self, git: GitSim, console: Console):
-        self.console = console
-        self.git = git
-
-    def display_log(self):
-        log_content = self.git.log
-        if log_content:
-            syntax = Syntax(log_content, "bash", theme="monokai", line_numbers=True)
-            self.console.print(syntax)
-        else:
-            self.console.print("No log available")
-
-
-def main():
-    console = Console()
-    git = GitSim()
-    git_tree = GitTree(git, console)
-    git_tree.display_log()
+            raise Exception(f"Error creating temp dir: {e}")
 
 
 if __name__ == "__main__":
-    main()
+    git = GitSim()
+    print(git.log)
