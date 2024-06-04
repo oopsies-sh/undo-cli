@@ -56,8 +56,11 @@ def removekey(ctx):
 @click.command()
 @click.pass_context
 def show(ctx):
-    git_tree = ctx.obj["git_tree"]
-    git_tree.display_log()
+    try:
+        git_tree = ctx.obj["git_tree"]
+        git_tree.display_log()
+    except Exception as e:
+        ctx.obj["console"].print(f"Error: {e}")
 
 
 cli.add_command(show)
